@@ -1,4 +1,7 @@
 import scrapy
+from scrapy.loader import ItemLoader
+from cloth_prices_project.items import ClothItem
+
 
 class SareeSpider(scrapy.Spider):
     # identity
@@ -14,11 +17,11 @@ class SareeSpider(scrapy.Spider):
     # response
     def parse(self, response):
         for saree in response.selector.xpath("//li[contains(@class, 'product type-product')]"):
-            yield {
-                'title': saree.xpath(".//h2[@class='woocommerce-loop-product__title']/text()").extract_first(),
-                'price': saree.xpath(".//span[@class='woocommerce-Price-amount amount']/text()").extract_first(),
-                'img_url': saree.xpath(".//img[@class='attachment-woocommerce_thumbnail size-woocommerce_thumbnail']/@src").extract_first()
-            }
+            loader = ItemLoader(item=ClothItem(), selector=saree, response=response)
+            loader.add_xpath('title', ".//h2[@class='woocommerce-loop-product__title']/text()")
+            loader.add_xpath('price', ".//span[@class='woocommerce-Price-amount amount']/text()")
+            loader.add_xpath('img_url', ".//img[@class='attachment-woocommerce_thumbnail size-woocommerce_thumbnail']/@src")
+            yield loader.load_item()
 
         # get next pages urls
         next_page_url = response.selector.xpath("//a[@class='next page-numbers']/@href").extract_first()
